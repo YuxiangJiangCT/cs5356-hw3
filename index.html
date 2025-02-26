@@ -11,10 +11,17 @@
     <div class="about-section">
         <h2 class="subtitle">About Me</h2>
         <p class="maincontent">I'm a Cornell Tech student with a passion for learnging Website.</p>
+        <h2 class="subtitle" style="margin-top: 30px;">What I learned from this homework</h2>
+        <ul style="font-size: large;" >
+            <li>Use an HTML element we haven't talked about in detail: I leverages the HTML details element. And I learned that the element initially shows only the summary text, inviting users to click if they’re curious, and then expands smoothly to reveal a list of interesting facts about Roosevelt Island. This behavior not only conserves space on the webpage but also offers a user-friendly way to manage additional content on demand.</li>
+            <li>Use a CSS property we haven't talked about in detail: I learned that CSS transitions let you precisely control smooth state changes by defining a property, duration, timing function, and delay. Using @keyframes, you can create complex, automated animations, and applying transform properties ensures better performance compared to changing layout dimensions directly.</li>
+            <li>(Extra Credit)Add an additional type of interactivity to your website: I implemented a mouse-following glow effect on the 311 service request cards using a combination of CSS and JavaScript. The effect creates a subtle radial gradient that follows the mouse cursor within each card. I leveraged mousemove, mouseenter, and mouseleave events to track the cursor, dynamically created DOM elements for the glow effect, and used getBoundingClientRect() to calculate relative mouse positions. By applying CSS transforms and transitions, I achieved smooth animations while managing z-index and pointer-events to ensure proper layering and interaction. This implementation shows how JavaScript event handling can enable rich interactions beyond traditional CSS :hover effects, all while maintaining smooth performance.</li>
+
+        </ul>
     </div>
 
     <article class="wrapper">
-        <h3 class="subsubtitle">One of my favorite images that I took</h3>
+        <h2 class="subsubtitle">One of my favorite images that I took</h2>
 
 
         <details class="fun-facts">
@@ -167,6 +174,8 @@
         border-radius: 8px;
         transition: transform 0.3s ease;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        position: relative;
+        overflow: hidden;
     }
 
     .service-card:hover {
@@ -174,10 +183,33 @@
         box-shadow: 0 4px 8px rgba(0,0,0,0.15);
     }
 
+
+
+    .glow-effect {
+        position: absolute;
+        width: 150px;
+        height: 150px;
+        background: radial-gradient(circle, 
+            rgba(0, 102, 255, 0.15) 0%, 
+            rgba(0, 102, 255, 0) 70%);
+        border-radius: 50%;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        transform: translate(-50%, -50%);
+    }
+
+    .service-card.active .glow-effect {
+        opacity: 1;
+    }
+
     .service-card h4 {
         color: #0066ff;
         margin-top: 0;
+        position: relative; 
     }
+
+
 
 
     @media only screen and (min-width: 1px) and (max-width: 1000px){
@@ -229,9 +261,9 @@
             grid-template-rows: auto;
             grid-template-areas: 
             "subsubtitle"
-            "fun-facts"
             "image"
             "description"
+            "fun-facts"
             "public-service";
         }
     }
@@ -239,6 +271,36 @@
 
 
 <script>
+    function addCardInteractivity() {
+        const cards = document.querySelectorAll('.service-card');
+        
+        cards.forEach(card => {
+            const glow = document.createElement('div');
+            glow.className = 'glow-effect';
+            card.appendChild(glow);
+
+            card.addEventListener('mouseenter', () => {
+                card.classList.add('active');
+            });
+
+            card.addEventListener('mouseleave', () => {
+                card.classList.remove('active');
+            });
+
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                glow.style.left = `${x}px`;
+                glow.style.top = `${y}px`;
+            });
+        });
+    }
+
+
+
+
     async function fetch311Data() {
         try {
             const response = await fetch(
@@ -278,6 +340,8 @@
                 listElement.appendChild(card);
             });
 
+            setTimeout(addCardInteractivity, 100);
+
         } catch (error) {
             console.error('Error fetching 311 data:', error);
             document.getElementById('service-list').innerHTML = 
@@ -285,5 +349,8 @@
         }
     }
 
-    document.addEventListener('DOMContentLoaded', fetch311Data);
+
+    document.addEventListener('DOMContentLoaded', () => {
+        fetch311Data();
+    });
 </script>
